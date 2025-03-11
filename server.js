@@ -1,20 +1,20 @@
-// Import express and create an app
-const express = require('express');
-const path = require('path');
+const express = require("express");
+const cors = require("cors");
+
 const app = express();
+app.use(cors());
 
-// Set the port
-const port = 3000;
+const PORT = 3000;
 
-// Serve static files (like HTML, CSS, JS) from the current directory
-app.use(express.static(path.join(__dirname, '/')));
+// Countdown logic
+let resetTime = Math.floor(Date.now() / 1000) + 86400; // 24 hours from now
 
-// Serve the index.html when accessing the root path
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+app.get("/time-remaining", (req, res) => {
+    const currentTime = Math.floor(Date.now() / 1000);
+    const remainingSeconds = resetTime - currentTime;
+    res.json({ remainingSeconds: remainingSeconds > 0 ? remainingSeconds : 0 });
 });
 
-// Start the server
-app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });
