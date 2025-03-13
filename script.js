@@ -1,26 +1,105 @@
-function updateCountdown() {
-    fetch("http://localhost:3000/time-remaining") // Replace with your actual deployed server URL later
-        .then(response => response.json())
-        .then(data => {
-            let timeLeft = data.remainingSeconds;
-            const countdownElement = document.getElementById("countdown");
+document.addEventListener("DOMContentLoaded", function () {
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const countdownElement = document.getElementById("countdown");
 
-            function updateDisplay() {
-                if (timeLeft <= 0) {
-                    countdownElement.textContent = "Game resets!";
-                } else {
-                    let hours = Math.floor(timeLeft / 3600);
-                    let minutes = Math.floor((timeLeft % 3600) / 60);
-                    let seconds = timeLeft % 60;
-                    countdownElement.textContent = `${hours}h ${minutes}m ${seconds}s`;
-                    timeLeft--;
-                    setTimeout(updateDisplay, 1000);
-                }
+    let blocks = [];
+    let currentBlock = null;
+    let speed = 4;
+    let gameOver = false;
+    let score = 0;
+    let blockColors = ["purple", "gold"];
+    let cameraOffset = 0;
+
+    function fetchTimeRemaining() {
+        fetch('http://localhost:3000/time-remaining')
+            .then(response => response.json())
+            .then(data => {
+                let timeRemaining = data.timeRemaining;
+                let hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+                let minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                let seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+                countdownElement.innerText = `${hours}h ${minutes}m ${seconds}s`;
+            })
+            .catch(error => console.error('Error fetching time:', error));
+    }
+
+    function createBlock() {
+        const width = blocks.length > 0 ? blocks[blocks.length - 1].width : 80;
+        return {
+            x: (canvas.width - width) / 2,
+            y: blocks.length > 0 ? blocks[blocks.length - 1].y - 30 : canvas.height - 30,
+            width: width,
+            height: 30,
+            direction: 1,
+            color: blockColors[blocks.length % 2]
+        };
+    }
+
+    function resetGame() {
+        blocks = [{ x: (canvas.width - 80) / 2, y: canvas.height - 30, width: 80, height: 30, color: "purple" }];
+        currentBlock = createBlock();
+        score = 0;
+        gameOver = false;
+        cameraOffset = 0;
+    }
+
+    function update() {
+        if (gameOver) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        currentBlock.x += speed * currentBlock.direction;
+        if (currentBlock.x + currentBlock.width > canvas.width || currentBlock.x < 0) {
+            currentBlock.direction *= -1;
+        }
+
+        if (currentBlock.y < canvas.height * (1 / 4)) {
+            cameraOffset = canvas.height * (1 / 4) - currentBlock.y;
+        }
+
+        ctx.save();
+        ctx.translate(0, cameraOffset);
+
+        ctx.fillStyle = "white";
+        ctx.fillText("Score: " + score, 10, 20 - cameraOffset);
+
+        blocks.forEach(block => {
+            ctx.fillStyle = block.color;
+            ctx.fillRect(block.x, block.y, block.width, block.height);
+        });
+
+        ctx.fillStyle = currentBlock.color;
+        ctx.fillRect(currentBlock.x, currentBlock.y, currentBlock.width, currentBlock.height);
+
+        ctx.restore();
+
+        requestAnimationFrame(update);
+    }
+
+    canvas.addEventListener("click", function () {
+        if (gameOver) return;
+
+        const lastBlock = blocks[blocks.length - 1];
+        const overlap = Math.min(currentBlock.x + currentBlock.width, lastBlock.x + lastBlock.width) - Math.max(currentBlock.x, lastBlock.x);
+
+        if (overlap > 0) {
+            if (overlap < currentBlock.width) {
+                currentBlock.width = overlap;
+                currentBlock.x = Math.max(currentBlock.x, lastBlock.x);
             }
+            blocks.push(currentBlock);
+            currentBlock = createBlock();
+            score++;
+        } else {
+            gameOver = true;
+            alert(`Game Over! Your score: ${score}`);
+        }
+    });
 
-            updateDisplay();
-        })
-        .catch(error => console.error("Error fetching time:", error));
-}
+    function startCountdown() {
+        setInterval(fetchTimeRemaining, 1000);
+    }
 
-updateCountdown();
+    resetGame();
+    update();
+    startCountdown();
+});
