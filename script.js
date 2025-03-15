@@ -1,4 +1,3 @@
-// filepath: [script.js](http://_vscodecontentref_/11)
 document.addEventListener("DOMContentLoaded", function () {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
