@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
-    const countdownElement = document.getElementById("countdown");
 
     let blocks = [];
     let currentBlock = null;
@@ -10,19 +9,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let score = 0;
     let blockColors = ["purple", "gold"];
     let cameraOffset = 0;
-
-    function fetchTimeRemaining() {
-        fetch('/api/time-remaining')
-            .then(response => response.json())
-            .then(data => {
-                let timeRemaining = data.timeRemaining;
-                let hours = Math.floor(timeRemaining / (1000 * 60 * 60));
-                let minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-                let seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-                countdownElement.innerText = `${hours}h ${minutes}m ${seconds}s`;
-            })
-            .catch(error => console.error('Error fetching time:', error));
-    }
 
     function createBlock() {
         const width = blocks.length > 0 ? blocks[blocks.length - 1].width : 80;
@@ -95,11 +81,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    function startCountdown() {
-        setInterval(fetchTimeRemaining, 1000);
-    }
-
     resetGame();
     update();
-    startCountdown();
 });
