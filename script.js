@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let cameraOffset = 0;
 
     function fetchTimeRemaining() {
-        fetch('http://localhost:3000/time-remaining')
+        fetch('/api/time-remaining')
             .then(response => response.json())
             .then(data => {
                 let timeRemaining = data.timeRemaining;
