@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const countdownElement = document.getElementById("countdown");
-    const leaderboardElement = document.getElementById("leaderboard");
 
     let blocks = [];
     let currentBlock = null;
@@ -23,34 +22,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 countdownElement.innerText = `${hours}h ${minutes}m ${seconds}s`;
             })
             .catch(error => console.error('Error fetching time:', error));
-    }
-
-    function fetchLeaderboard() {
-        fetch('/api/leaderboard')
-            .then(response => response.json())
-            .then(data => {
-                leaderboardElement.innerHTML = data.map((entry, index) => 
-                    `<li>${index + 1}. ${entry.name}: ${entry.score}</li>`
-                ).join('');
-            })
-            .catch(error => console.error('Error fetching leaderboard:', error));
-    }
-
-    function submitScore(name, score) {
-        fetch('/api/submit-score', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name, score })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                fetchLeaderboard();
-            }
-        })
-        .catch(error => console.error('Error submitting score:', error));
     }
 
     function createBlock() {
@@ -120,10 +91,6 @@ document.addEventListener("DOMContentLoaded", function () {
             score++;
         } else {
             gameOver = true;
-            const name = prompt("Game Over! Enter your name:");
-            if (name) {
-                submitScore(name, score);
-            }
             alert(`Game Over! Your score: ${score}`);
         }
     });
@@ -135,5 +102,4 @@ document.addEventListener("DOMContentLoaded", function () {
     resetGame();
     update();
     startCountdown();
-    fetchLeaderboard();
 });
